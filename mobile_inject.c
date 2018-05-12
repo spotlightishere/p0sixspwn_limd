@@ -99,9 +99,9 @@ Retry:	{}
 		plist_dict_set_item(mount_request_dict, "Command", plist_new_string("MountImage"));
 		plist_dict_set_item(mount_request_dict, "ImagePath", plist_new_string("/var/mobile/Media/PublicStaging/staging.dimage"));
 		plist_dict_set_item(mount_request_dict, "ImageType", plist_new_string("Developer"));
-		printf("%s\n", (const char*)sig);
 		plist_dict_set_item(mount_request_dict, "ImageSignature", plist_new_data((const char*)sig, sizeof(sig)));
-		print_xml(mount_request_dict);
+		// If you want to debug what's being sent, check this out.
+		// print_xml(mount_request_dict);
 
 		property_list_service_error_t plist_send_err = property_list_service_send_xml_plist(mim_client, mount_request_dict);
 		if (plist_send_err != PROPERTY_LIST_SERVICE_E_SUCCESS) {
@@ -156,9 +156,10 @@ Retry:	{}
 			}
 			assert(!fcntl(helper_socket, F_SETFL, O_NONBLOCK));
 			assert(!fcntl(0, F_SETFL, O_NONBLOCK));
+			exit(0);
 		} else {
 			printf("Failed to inject image, trying again... (if it fails, try a different time), delay ... %dus\n", timesl);
-			timesl += 1000;
+			timesl += 100;
 			goto Retry;
 		}
   }
