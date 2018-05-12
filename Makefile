@@ -7,8 +7,10 @@ CFILES = mobile_inject.c
 # include $(MAKEFILEPATH)/CoreOS/ReleaseControl/BSDCommon.make
 
 mobile_inject: mobile_inject.c
-	$(CC) -o mobile_inject mobile_inject.c -Wall -dead_strip -limobiledevice -lplist
+	$(CC) -o mobile_inject mobile_inject.c -Wall -limobiledevice -lplist
 
+clean:
+	rm mobile_inject
 
 
 # after_install:
