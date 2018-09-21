@@ -57,10 +57,10 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
         lockdownd_client_new_with_handshake(dev, &lockdown_client, "CopyIt");
     if (err != LOCKDOWN_E_SUCCESS) {
       printf("Failed to talk to lockdown: %d\n", err);
-      return;
+      exit(2);
     }
 
-  Retry : {}
+  Retry: {}
     printf("Starting AFC service...\n");
     lockdownd_service_descriptor_t afc_descriptor = 0;
     assert(!lockdownd_start_service(lockdown_client, "com.apple.afc",
@@ -141,10 +141,10 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
         if (!status) {
           printf("Error: Seems like the status given wasn't a string:\n");
           print_xml(mount_result_dict);
-          return;
+          exit(2);
         }
       } else {
-        printf("Error: Doesn't seem there was any status given:\n");
+        printf("Error: Doesn't seem there was any status given.. check for an error. Returned:\n");
         print_xml(mount_result_dict);
         status = "";
       }
@@ -164,7 +164,7 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
         return;
       }
       assert(!fcntl(helper_socket, F_SETFL, O_NONBLOCK));
-      assert(!fcntl(0, F_SETFL, O_NONBLOCK));
+      // assert(!fcntl(0, F_SETFL, O_NONBLOCK));
       exit(0);
     } else {
       printf("Failed to inject image, trying again... (if it fails, try a "
@@ -191,8 +191,8 @@ int main(int argc, char **argv) {
   real_dmg_signature = argv[2];
   root_dmg = argv[3];
 
+  // Loop while performing
   assert(!idevice_event_subscribe(cb, NULL));
-  // I guess loop
   while (1) {
   }
   return 0;
