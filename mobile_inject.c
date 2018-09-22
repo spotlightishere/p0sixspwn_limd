@@ -144,6 +144,15 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
           exit(2);
         }
       } else {
+        plist_t node = plist_dict_get_item(mount_result_dict, "Error");
+        if (node) {
+          char *error_returned = NULL;
+          plist_get_string_val(node, &error_returned);
+          if (!error_returned || !strcmp(error_returned, "ImageMountFailed")) {
+            printf("Error: We somehow've already mounted our image. Reboot your device and run again.\n");
+            exit(3);
+          }
+        }
         printf("Error: Doesn't seem there was any status given.. check for an error. Returned:\n");
         print_xml(mount_result_dict);
         status = "";
@@ -159,12 +168,11 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
       sleep(2);
       printf("Image mounted, running helper...\n");
       err = lockdownd_start_service(lockdown_client, "CopyIt", &helper_socket);
-      if (err != LOCKDOWN_E_SUCCESS) {
+      if (err != LOCKDOWN_E_SUCCESS && err != LOCKDOWN_E_PLIST_ERROR) {
         printf("Failed to start helper service: %d\n", err);
-        return;
+        exit(4);
       }
       assert(!fcntl(helper_socket, F_SETFL, O_NONBLOCK));
-      // assert(!fcntl(0, F_SETFL, O_NONBLOCK));
       exit(0);
     } else {
       printf("Failed to inject image, trying again... (if it fails, try a "
