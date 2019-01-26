@@ -176,7 +176,7 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
       exit(0);
     } else {
       printf("Failed to inject image, trying again... (if it fails, try a "
-             "different time), delay ... %dus\n",
+             "different time). Delay: %dus\n",
              timesl);
       timesl += 1000;
       goto Retry;
