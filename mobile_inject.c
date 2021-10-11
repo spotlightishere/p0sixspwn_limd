@@ -16,7 +16,7 @@ static char *real_dmg, *real_dmg_signature, *root_dmg;
 int timesl;
 
 // Taken from
-// https://github.com/libimobiledevice/libimobiledevice/blob/00f8e5733f716da8032606566eac7a9e2e49514d/tools/ideviceimagemounter.c#L128-L135
+// https://github.com/libimobiledevice/libimobiledevice/blob/b3d35fbcf7a1ac669c2e80fbd58920941a5d4c0c/tools/ideviceimagemounter.c#L146-L153
 static void print_xml(plist_t node) {
   char *xml = NULL;
   uint32_t len = 0;
@@ -60,7 +60,7 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
       exit(2);
     }
 
-  Retry: {}
+  Retry : {}
     printf("Starting AFC service...\n");
     lockdownd_service_descriptor_t afc_descriptor = 0;
     assert(!lockdownd_start_service(lockdown_client, "com.apple.afc",
@@ -88,6 +88,7 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
                                     "com.apple.mobile.mobile_image_mounter",
                                     &mim_descriptor));
     assert(!property_list_service_client_new(dev, mim_descriptor, &mim_client));
+
     // Get real DMG signature
     int fd = open(real_dmg_signature, O_RDONLY);
     assert(fd != -1);
@@ -139,7 +140,8 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
       if (node) {
         plist_get_string_val(node, &status);
         if (!status) {
-          printf("Error: Seems like the status given wasn't a string:\n");
+          printf("Error: Seems like the status given wasn't a "
+                 "string:\n");
           print_xml(mount_result_dict);
           exit(2);
         }
@@ -149,11 +151,13 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
           char *error_returned = NULL;
           plist_get_string_val(node, &error_returned);
           if (!error_returned || !strcmp(error_returned, "ImageMountFailed")) {
-            printf("Error: We somehow've already mounted our image. Reboot your device and run again.\n");
+            printf("Error: We somehow've already mounted our "
+                   "image. Reboot your device and run again.\n");
             exit(3);
           }
         }
-        printf("Error: Doesn't seem there was any status given.. check for an error. Returned:\n");
+        printf("Error: Doesn't seem there was any status given.. check "
+               "for an error. Returned:\n");
         print_xml(mount_result_dict);
         status = "";
       }
@@ -172,7 +176,8 @@ static void cb(const idevice_event_t *given_event, void *ignored_user_data) {
         printf("Failed to start helper service: %d\n", err);
         exit(4);
       }
-      assert(!fcntl(helper_socket, F_SETFL, O_NONBLOCK));
+
+      // We're all set!
       exit(0);
     } else {
       printf("Failed to inject image, trying again... (if it fails, try a "
@@ -200,8 +205,9 @@ int main(int argc, char **argv) {
   root_dmg = argv[3];
 
   // Loop while performing
-  assert(!idevice_event_subscribe(cb, NULL));
+  assert(idevice_event_subscribe(cb, NULL) == IDEVICE_E_SUCCESS);
   while (1) {
+    // Loop as we wait for our callback to be called.
   }
   return 0;
 }
